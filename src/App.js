@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
-import { Switch, Route, Link, Redirect } from 'react-router-dom';
+import { Switch, Route, Redirect } from 'react-router-dom';
 // import { AddMovie } from './AddMovie';
 // import { MovieDetails } from './MovieDetails';
 // import { MovieList } from './MovieList';
@@ -19,6 +19,13 @@ import Button from '@mui/material/Button';
 import { useParams } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import { AppBar } from '@mui/material';
+import Toolbar from '@mui/material/Toolbar';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Paper from '@mui/material/Paper';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+
 
 
 
@@ -79,6 +86,15 @@ export default function App() {
 ];
 
 const [movies, setMovies] = useState(INITIAL_MOVIES);
+  const history = useHistory(); // to update Tool bar/nav bar
+  const [mode, setMode] = useState("dark");
+
+
+  const theme = createTheme({
+    palette:{
+      mode: mode,
+    },
+  });
 
 
 // const[name, setName] = useState("");
@@ -109,14 +125,44 @@ const [movies, setMovies] = useState(INITIAL_MOVIES);
      
 
   return (
-    <div className="App">
+    <ThemeProvider theme={theme}>
+      <Paper elevation={4} style={ { borderRadius: "0px", minHeight: "100vh"}}>
+        <div className="App">
 
-      <nav>
-        <Link to="/">Home</Link>
-        <Link to="/movies">Movies</Link>
-        <Link to="/add-movies">Add Movies</Link>
-        </nav>  
+        <AppBar position="static" style={{marginBottom: "24px"}}>
+          <Toolbar variant="dense">
+            <Button variant="text" color="inherit" onClick={() => history.push('/')}>
+              Home
+            </Button>   
+           {/* onClick = history.push used to replace the Link path to give URL in browser */}
 
+            <Button variant="text" color="inherit" onClick={() => history.push('/movies')}>
+             Movies
+            </Button>
+
+            <Button variant="text" color="inherit" onClick={() => history.push('/add-movies')}>
+              Add Movies
+            </Button>
+
+            <Button 
+              startIcon={
+              mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />
+              }
+              style={ { marginLeft: "auto"}} 
+              variant="text" color="inherit" onClick={() => setMode( mode === "light" ? "dark" : "light")}>
+               { mode === "light" ? "dark" : "light"} mode
+            </Button>
+
+          </Toolbar>
+        </AppBar>  
+
+               {/* navbar => commented because the link movies transfered to Tool Bar */}
+                {/* <nav>
+                  <Link to="/">Home</Link>
+                    <Link to="/movies">Movies</Link>
+                    <Link to="/add-movies">Add Movies</Link>
+                    </nav>   */} 
+          
           <Switch>
 
             <Route exact path="/">
@@ -128,7 +174,7 @@ const [movies, setMovies] = useState(INITIAL_MOVIES);
             <Route path="/films">
               <Redirect to="/movies"/>
             </Route>
-            <Route path="/movies/edit/:id">Edit Movies</Route>
+            <Route path="/movies/edit/:id"><EditMovie/></Route>
 
             <Route path="/movies/:id">
                 {/* Details */}
@@ -150,7 +196,11 @@ const [movies, setMovies] = useState(INITIAL_MOVIES);
 
           
 
-      </div>    
+        </div>  
+
+      </Paper>
+    </ThemeProvider>  
+
             
         
     
@@ -208,15 +258,14 @@ export function MovieDetails({ movies }) {
   };
   return <div>
       <iframe
-        width="100%"
-        height="800"
-        src={movie.trailer}
+        width="60%"
+        height="500"
+        src={movie.Trailer}
         title="YouTube video player"
         frameBorder="0"
         allow="accelarometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
       ></iframe>
-
       <div className="movie-detail-container">
         <div className="movie-specs">
           <h3 className="movie-name">{movie.name}</h3>
@@ -233,7 +282,6 @@ export function MovieDetails({ movies }) {
             Back
           </button>
       </div>
-
     </div>
   ;
 

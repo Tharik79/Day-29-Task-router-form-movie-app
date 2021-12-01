@@ -44,7 +44,7 @@
 body{
    margin-left: 20px;
   font-family: 'Poppins', sans-serif;
-  background-image: linear-gradient(to right top, #cfd3d9, #b9ddea, #a1e9e3, #adf0c1, #dfed96);
+  /* background-image: linear-gradient(to right top, #cfd3d9, #b9ddea, #a1e9e3, #adf0c1, #dfed96); */
   
 }
 .movie-list{
