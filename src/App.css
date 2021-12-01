@@ -84,3 +84,7 @@ nav{
   text-align: center;
   color: red;
 }
+.movie-show-button{
+  margin-bottom: 10px;
+  font-size: 18px;
+}

@@ -2,18 +2,27 @@ import React, { useState } from 'react';
 import './App.css';
 import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
+import { Switch, Route, Link, Redirect } from 'react-router-dom';
+// import { AddMovie } from './AddMovie';
+// import { MovieDetails } from './MovieDetails';
+// import { MovieList } from './MovieList';
+
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
+import InfoIcon from '@mui/icons-material/Info';
+import { useHistory } from "react-router-dom";
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import InfoIcon from '@mui/icons-material/Info';
-import { Switch, Route, Link, Redirect } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 
-function App() {
+
+export default function App() {
 
 
   const INITIAL_MOVIES = [
@@ -111,15 +120,24 @@ const [movies, setMovies] = useState(INITIAL_MOVIES);
           <Switch>
 
             <Route exact path="/">
-              <Welcome/></Route>
-            <Route path="/movies">
-              <MovieList movies={movies} />
+              <Welcome/>
             </Route>
+
             {/* now if customers search films instead of movies on our webpage, we should use "Redirect to" inside films path */}
             {/* old Route --> films --> changed to new Route movies */}
             <Route path="/films">
-              <Redirect to="/movies" />
+              <Redirect to="/movies"/>
             </Route>
+            <Route path="/movies/edit/:id">Edit Movies</Route>
+
+            <Route path="/movies/:id">
+                {/* Details */}
+            <MovieDetails movies={movies} />
+            </Route>
+            <Route path="/movies">
+              <MovieList movies={movies} setMovies={setMovies}/>
+            </Route>
+                         
             <Route path="/add-movies">
               <AddMovie movies={movies} setMovies={setMovies} />
             </Route>
@@ -139,8 +157,302 @@ const [movies, setMovies] = useState(INITIAL_MOVIES);
   );
 }
 
-export default App;
+// export default App;
 
+
+export function MovieList({ movies, setMovies }) {
+
+      const history = useHistory();
+  return (
+    <section className="movie-list">
+      {movies.map(({ name, pic, rating, summary }, index) => (
+        <Movie name={name} pic={pic} rating={rating} summary={summary} id={index}
+          deleteButton={<IconButton onClick={() => {
+            console.log("deleting...", index);
+            const deleteIdx = index;
+            const remainingMovies = movies.filter((mv, idx) => idx !== deleteIdx);
+            console.log("remaining:", remainingMovies);
+            setMovies(remainingMovies);
+
+          }}
+
+            className="movie-show-button"
+            aria-label="delete movie" color="error"
+          >
+            <DeleteIcon />
+          </IconButton>}
+            editButton={<IconButton 
+                            onClick={() => history.push("/movies/edit/" + index)}
+
+                            className="movie-show-button"
+                              aria-label="edit button" color="secondary"
+                          >
+                              <EditIcon/>
+                        </IconButton>}
+                         /> 
+                      
+
+      ))}
+    </section>
+  );
+}
+
+export function MovieDetails({ movies }) {
+  const { id } = useParams();
+  const movie = movies[id];
+  const history = useHistory();
+  console.log(movie);
+  const styles = {
+    color: movie.rating < 8 ? "crimson" : "green",
+    fontWeight: "bold",
+  };
+  return <div>
+      <iframe
+        width="100%"
+        height="800"
+        src={movie.trailer}
+        title="YouTube video player"
+        frameBorder="0"
+        allow="accelarometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      ></iframe>
+
+      <div className="movie-detail-container">
+        <div className="movie-specs">
+          <h3 className="movie-name">{movie.name}</h3>
+          <p className="movie-rating" style={styles}>
+            ⭐{movie.rating}
+          </p>
+        </div>
+        <p className="movie-summary"> {movie.summary} </p>
+        <button 
+            onClick={() => history.goBack()}
+            variant="outlined"
+            startIcon={<keyboardBackSpaceIcon /> }
+          >
+            Back
+          </button>
+      </div>
+
+    </div>
+  ;
+
+}
+
+
+ function EditMovie({ movies, setMovies }) {
+
+  const[id] = useParams();
+  const movie = movies[id];
+  console.log(id, movie);
+
+  const [name, setName] = useState(movie.name);
+  const [pic, setPic] = useState(movie.pic);
+  const [rating, setRating] = useState(movie.rating);
+  const [summary, setSummary] = useState(movie.summary);
+  const [Trailer, setTrailer] = useState(movie.Trailer);
+  // const [movies, setMovies] = useState(INITIAL_MOVIES);
+  const editMovie = () => {
+    console.log("Adding Movies... name, pic, rating, summary");
+
+    // const newMovie = {
+    //     name: name,
+    //     pic: pic,
+    //     rating: rating,
+    //     summary: summary,
+    // }
+    const updatedMovie = {
+      name,
+      pic,
+      rating,
+      summary,
+      Trailer,
+    }; //shorthand for same key:value pair
+    console.log(updatedMovie);
+    // copy the movielist and then add a new movie
+    // setMovies([...movies, updatedMovie]);
+
+    //replace the updated movie in the movie list (copy)
+
+    const copyMovieList = [...movies];
+    copyMovieList[id] = updatedMovie;
+    setMovies(copyMovieList);
+
+  };
+
+ 
+
+
+  return (
+    <div className="add-movie-form">
+      <TextField value={name} onChange={(event) => setName(event.target.value)}
+        label="Enter a Movie Name" variant="standard" />
+
+      <TextField value={pic} onChange={(event) => setPic(event.target.value)}
+        label="Enter a Pic url" variant="standard" />
+
+      {/* <input value={pic}  onChange={(event) => setPic(event.target.value)}
+            placeholder = "Enter a Movie pic" /> */}
+
+      <TextField value={rating} onChange={(event) => setRating(event.target.value)}
+        label="Enter Rating of the Movie" variant="standard" />
+
+
+      {/* <input value={rating}  onChange={(event) => setRating(event.target.value)}
+            placeholder = "Enter a Movie rating" /> */}
+
+      <TextField value={summary} onChange={(event) => setSummary(event.target.value)}
+        label="Enter Summary of the Movie" variant="standard" />
+
+      {/* <input value={summary} onChange={(event) => setSummary(event.target.value)}
+            placeholder = "Enter a Movie summary" /> */}
+
+        <TextField value={Trailer} onChange={(event) => setTrailer(event.target.value)}
+          label="Trailer" variant="standard" />      
+
+      <Button onClick={editMovie} variant="outlined">Save</Button>
+
+      {/* <button onClick={addMovie}> Add Movie </button> */}
+      {/* <MovieList movies={movies} /> */}
+      {/* <Counter/>  */}
+
+    </div>
+  );
+}
+
+
+export function AddMovie({ movies, setMovies }) {
+
+  const [name, setName] = useState("");
+  const [pic, setPic] = useState("");
+  const [rating, setRating] = useState("");
+  const [summary, setSummary] = useState("");
+  const [Trailer, setTrailer] = useState("");
+  // const [movies, setMovies] = useState(INITIAL_MOVIES);
+  const addMovie = () => {
+    console.log("Adding Movies... name, pic, rating, summary");
+
+    // const newMovie = {
+    //     name: name,
+    //     pic: pic,
+    //     rating: rating,
+    //     summary: summary,
+    // }
+    const newMovie = {
+      name,
+      pic,
+      rating,
+      summary,
+      Trailer,
+    }; //shorthand for same key:value pair
+    console.log(newMovie);
+    // copy the movielist and then add a new movie
+    setMovies([...movies, newMovie]);
+  };
+
+
+  return (
+    <div className="add-movie-form">
+      <TextField value={name} onChange={(event) => setName(event.target.value)}
+        label="Enter a Movie Name" variant="standard" />
+
+      <TextField value={pic} onChange={(event) => setPic(event.target.value)}
+        label="Enter a Pic url" variant="standard" />
+
+      {/* <input value={pic}  onChange={(event) => setPic(event.target.value)}
+            placeholder = "Enter a Movie pic" /> */}
+
+      <TextField value={rating} onChange={(event) => setRating(event.target.value)}
+        label="Enter Rating of the Movie" variant="standard" />
+
+
+      {/* <input value={rating}  onChange={(event) => setRating(event.target.value)}
+            placeholder = "Enter a Movie rating" /> */}
+
+      <TextField value={summary} onChange={(event) => setSummary(event.target.value)}
+        label="Enter Summary of the Movie" variant="standard" />
+
+      {/* <input value={summary} onChange={(event) => setSummary(event.target.value)}
+            placeholder = "Enter a Movie summary" /> */}
+
+        <TextField value={Trailer} onChange={(event) => setTrailer(event.target.value)}
+          label="Trailer" variant="standard" />      
+
+      <Button onClick={addMovie} variant="outlined">Add a Movie</Button>
+
+      {/* <button onClick={addMovie}> Add Movie </button> */}
+      {/* <MovieList movies={movies} /> */}
+      {/* <Counter/>  */}
+
+    </div>
+  );
+}
+
+
+export function Movie({ name, pic, rating, summary, id, deleteButton, editButton }) {
+
+  const [show, setShow] = useState(true);
+  const history = useHistory();
+  // to create a button on the movie name and open a new movie description url 
+  //conditional styling
+  const styles = {
+    color: rating < 8 ? "crimson" : "green",
+    fontWeight: "bold"
+  };
+  // const summaryStyles = {
+  //   display : show ? "block" : "none",
+  // };
+  return (
+
+    <Card className="movie-container">
+      <img className="movie-pic" src={pic} alt={name} />
+
+      <CardContent>
+        <div className="movie-specs">
+          <h1 className="movie-name">
+            {name}
+            <IconButton onClick={() => {
+              console.log(id);
+              history.push("/movies/" + id);
+            }}
+
+              className="movie-show-button"
+              aria-label="more info" color="primary"
+            >
+              <InfoIcon />
+            </IconButton>
+
+            {/* now add InfoIcon button from mui to take the description to seperate url */}
+            <IconButton onClick={() => setShow(!show)} className="movie-show-button"
+              aria-label="hide" color="primary">
+              {/* <InfoIcon/> */}
+              {show ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            </IconButton>
+
+          </h1>
+          <h1 className="movie-rating" style={styles}>⭐{rating}</h1>
+        </div>
+        {/* now add InfoIcon button from mui to take the description to seperate url */}
+        {/* <IconButton onClick={() => setShow(!show)} className = "movie-show"
+             aria-label="hide" color="primary">
+              <InfoIcon/>
+            { show ? <ExpandLessIcon /> : <ExpandMoreIcon/>}
+        </IconButton> */}
+
+        {/* <button onClick={() => setShow(!show)} className = "movie-show"> */}
+        {/* {show ? "hide" : "show"} description */}
+        {/* </button> */}
+        {/* conditional rendering */}
+        {show ? <p className="movie-summary"> {summary}</p> : ""}
+
+        {/* <p style = {summaryStyles} className="movie-summary"> {summary}</p> */}
+        <CardActions>
+          <Counter /> {editButton}  {deleteButton}
+        </CardActions>
+      </CardContent>
+    </Card>
+  );
+}
 
 function Welcome(){
   return(
@@ -158,124 +470,7 @@ function NotFound(){
   )
 }
 
-function AddMovie({ movies, setMovies}){
-
-  const[name, setName] = useState("");
-    const[pic, setPic] = useState("");
-    const[rating, setRating] = useState("");
-    const[summary, setSummary] = useState("");
-    // const [movies, setMovies] = useState(INITIAL_MOVIES);
-    const addMovie = () => { console.log("Adding Movies... name, pic, rating, summary");
-
-    // const newMovie = {
-    //     name: name,
-    //     pic: pic,
-    //     rating: rating,
-    //     summary: summary,
-    // }
-
-      const newMovie = {
-       name,
-       pic,
-       rating,
-      summary,
-     }; //shorthand for same key:value pair
-    console.log(newMovie);
-     // copy the movielist and then add a new movie
-    setMovies([...movies, newMovie]);
-    };    
-
-
-      return(    
-        <div className="add-movie-form">
-          <TextField value={name} onChange={(event) => setName(event.target.value)} 
-            label="Enter a Movie Name" variant="standard" />
-
-          <TextField value={pic} onChange={(event) => setPic(event.target.value)} 
-            label="Enter a Pic url" variant="standard" />    
-      
-            {/* <input value={pic}  onChange={(event) => setPic(event.target.value)}
-            placeholder = "Enter a Movie pic" /> */}
-
-          <TextField value={rating} onChange={(event) => setRating(event.target.value)} 
-            label="Enter Rating of the Movie" variant="standard" />  
-
-      
-            {/* <input value={rating}  onChange={(event) => setRating(event.target.value)} 
-            placeholder = "Enter a Movie rating" /> */}
-      
-          <TextField value={summary} onChange={(event) => setSummary(event.target.value)} 
-            label="Enter Summary of the Movie" variant="standard" />  
-      
-            {/* <input value={summary} onChange={(event) => setSummary(event.target.value)} 
-            placeholder = "Enter a Movie summary" /> */}
-      
-          <Button onClick={addMovie} variant="outlined">Add a Movie</Button>
-
-            {/* <button onClick={addMovie}> Add Movie </button> */}
-            {/* <MovieList movies={movies} /> */}
-             {/* <Counter/>  */}
-
-        </div>    
-      );
-}
-
-function MovieList({movies}){
-
-  return(
-    <section className = "movie-list">
-      {movies.map(({name, pic, rating, summary}) => ( <Movie name={name} pic= {pic} rating = {rating} summary={summary}/>
-      ))}
-  </section>
-  );
-}
-
-
-function Movie({ name, pic, rating, summary }) {
-
-  const[show, setShow] = useState(true);
-    //conditional styling
-    const styles = { 
-      color:rating <8 ? "crimson" : "green",
-      fontWeight: "bold"
-    };
-    // const summaryStyles = {
-    //   display : show ? "block" : "none",
-    // };
-  return (
-    
-    <Card className="movie-container">
-      <img className="movie-pic" src={pic} alt={name} />
-
-      <CardContent>
-        <div className="movie-specs">
-          <h1 className="movie-name"> {name}</h1>
-          <h1 className="movie-rating" style={styles}>⭐{rating}</h1>
-        </div>
-          {/* now add InfoIcon button from mui to take the description to seperate url */}
-          <IconButton onClick={() => setShow(!show)} className = "movie-show"
-            aria-label="hide" color="primary">
-              <InfoIcon/>
-           { show ? <ExpandLessIcon /> : <ExpandMoreIcon/>}
-          </IconButton>
-
-        {/* <button onClick={() => setShow(!show)} className = "movie-show"> */}
-        {/* {show ? "hide" : "show"} description */}
-        {/* </button> */}
-        {/* conditional rendering */}
-        {show ? <p className="movie-summary"> {summary}</p>: ""}
-
-        {/* <p style = {summaryStyles} className="movie-summary"> {summary}</p> */}
-        <CardActions>
-            <Counter />
-        </CardActions>    
-      </CardContent>
-    </Card>
-  );
-}
-
-
-function Counter() {
+export function Counter() {
 
   const [like, setLike] = useState(0);
   const [disLike, setDisLike] = useState(0);
