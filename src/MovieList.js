@@ -6,13 +6,17 @@ import EditIcon from '@mui/icons-material/Edit';
 import { Movie } from './App';
 import  { useEffect, useState } from 'react';
 // export default App;
+
+const API_URL = "https://6166c4e413aa1d00170a6711.mockapi.io";
+//const API_URL = "https://guvi-nodejs-movies.herokuapp.com";
+
 export function MovieList() {
 
     const [movies, setMovies] = useState([]);
     //APP IS MOUNTED -> useEffect only once -> fetch -> setMovies
     
     const getMovies = () => {
-        fetch("https://6166c4e413aa1d00170a6711.mockapi.io/movies", {method: "GET",
+        fetch(`${API_URL}/movies`, {method: "GET",
        })
         .then((data) => data.json())
         .then((mvs) => setMovies(mvs));
@@ -20,7 +24,7 @@ export function MovieList() {
     useEffect(getMovies, []);
 
       const deleteMovie = (id) => {
-        fetch( `https://6166c4e413aa1d00170a6711.mockapi.io/movies/${id}`, {method:"DELETE", } 
+        fetch( `${API_URL}/movies/${id}`, {method:"DELETE", } 
         ).then(() => getMovies());
       };
 
